@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espacios de Color: sRGB vs AdobeRGB</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="language-selector">
+                <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="gl">Galego</option>
+                </select>
+            </div>
+            <h1 data-i18n="header.title">Comparación de Espacios de Color</h1>
+            <p data-i18n="header.subtitle">sRGB vs AdobeRGB - Diagrama CIE xy</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Panel Izquierdo -->
+            <div class="left-panel">
+                <h2 data-i18n="left.title">Control de Color (HSL)</h2>
+                
+                <!-- Slider de Tono -->
+                <div class="slider-group">
+                    <label for="hue" data-i18n="left.hue">Tono (H)</label>
+                    <div class="slider-container">
+                        <input type="range" id="hue" min="0" max="360" value="0" step="1" autocomplete="off">
+                        <span class="value-display" id="hue-value">0°</span>
+                    </div>
+                    <canvas id="hue-gradient" class="gradient-canvas"></canvas>
+                </div>
+
+                <!-- Slider de Saturación -->
+                <div class="slider-group">
+                    <label for="saturation" data-i18n="left.saturation">Saturación (S)</label>
+                    <div class="slider-container">
+                        <input type="range" id="saturation" min="0" max="100" value="100" step="1" autocomplete="off">
+                        <span class="value-display" id="saturation-value">100%</span>
+                    </div>
+                    <canvas id="saturation-gradient" class="gradient-canvas"></canvas>
+                </div>
+
+                <!-- Slider de Luminosidad -->
+                <div class="slider-group">
+                    <label for="lightness" data-i18n="left.lightness">Luminosidade (L)</label>
+                    <div class="slider-container">
+                        <input type="range" id="lightness" min="0" max="100" value="50" step="1" autocomplete="off">
+                        <span class="value-display" id="lightness-value">50%</span>
+                    </div>
+                    <canvas id="lightness-gradient" class="gradient-canvas"></canvas>
+                </div>
+
+                <!-- Muestra de Color -->
+                <div class="color-display-section">
+                    <h3 data-i18n="left.selectedColor">Color Seleccionado</h3>
+                    <div id="color-box" class="color-box"></div>
+                    <div class="color-values">
+                        <p id="rgb-value">RGB: (255, 0, 0)</p>
+                        <p id="hsl-display">HSL: (0°, 100%, 50%)</p>
+                    </div>
+                    
+                    <!-- Gráfica de distribución espectral RGB -->
+                    <div class="spectrum-graph-container">
+                        <h4 data-i18n="left.spectrumTitle">Distribución de Intensidad RGB</h4>
+                        <canvas id="rgb-spectrum" class="spectrum-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Derecho -->
+            <div class="right-panel">
+                <h2 data-i18n="right.title">Diagrama de Cromaticidad CIE 1931</h2>
+                <div class="canvas-container">
+                    <canvas id="cie-diagram"></canvas>
+                    <div class="diagram-attribution">
+                        <p>CIE diagram background image: <a href="https://commons.wikimedia.org/wiki/File:CIExy1931.svg" target="_blank" rel="noopener">CIExy1931.svg</a> by <a href="https://commons.wikimedia.org/wiki/User:Sakurambo" target="_blank" rel="noopener">Sakurambo</a>, licensed under <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank" rel="noopener">CC BY-SA 3.0</a></p>
+                    </div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-color srgb-color"></span>
+                        <span data-i18n="right.legend.srgbGamut">Gamut sRGB</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color adobergb-color"></span>
+                        <span data-i18n="right.legend.adobeGamut">Gamut AdobeRGB</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color current-srgb"></span>
+                        <span data-i18n="right.legend.currentSrgb">Color actual (sRGB)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color current-adobergb"></span>
+                        <span data-i18n="right.legend.currentAdobe">Color actual (AdobeRGB)</span>
+                    </div>
+                </div>
+
+                <!-- Coordenadas CIE xy -->
+                <div class="cie-coordinates">
+                    <h3 data-i18n="right.coordinates.title">Coordenadas CIE xy</h3>
+                    <div class="coordinate-group">
+                        <h4>sRGB</h4>
+                        <p id="srgb-xy">x: 0.000, y: 0.000</p>
+                    </div>
+                    <div class="coordinate-group">
+                        <h4>AdobeRGB</h4>
+                        <p id="adobergb-xy">x: 0.000, y: 0.000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <p class="footer-attribution">
+                <span data-i18n="footer.created">Created by</span> <strong>Valentín Barral</strong>
+            </p>
+            <p class="footer-license">
+                <span data-i18n="footer.licensed">Licensed under</span> 
+                <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">
+                    <img src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0" style="vertical-align: middle; margin: 0 4px;">
+                    Creative Commons Attribution-ShareAlike 4.0 International
+                </a>
+            </p>
+            <p class="footer-description" data-i18n="footer.freeToShare">
+                Free to share and adapt with attribution
+            </p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
