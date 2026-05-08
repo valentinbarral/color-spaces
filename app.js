@@ -1,3 +1,34 @@
+// ===== THEME MANAGEMENT =====
+
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+function initTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+        document.body.classList.remove('dark');
+    } else {
+        document.body.classList.add('dark');
+    }
+}
+
+// ===== HAMBURGER MENU =====
+
+function toggleMenu() {
+    document.getElementById('headerControls').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+    const controls = document.getElementById('headerControls');
+    const hamburger = document.querySelector('.hamburger');
+    if (!controls.contains(e.target) && e.target !== hamburger) {
+        controls.classList.remove('open');
+    }
+});
+
 // ===== SISTEMA DE INTERNACIONALIZACIÓN =====
 
 const translations = {
@@ -96,78 +127,68 @@ const translations = {
     }
 };
 
-// Función para cambiar el idioma
-function changeLanguage(lang) {
+function changeLang(lang) {
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(element => {
         const key = element.getAttribute('data-i18n');
         const keys = key.split('.');
         let translation = translations[lang];
-        
+
         for (const k of keys) {
             translation = translation[k];
         }
-        
+
         if (translation) {
             element.textContent = translation;
         }
     });
-    
-    // Guardar preferencia en localStorage
-    localStorage.setItem('preferredLanguage', lang);
-    
-    // Actualizar el título de la página
+
+    localStorage.setItem('lang', lang);
     document.title = translations[lang].header.title + ": sRGB vs AdobeRGB";
 }
 
-// Inicializar idioma al cargar
-function initializeLanguage() {
-    const languageSelect = document.getElementById('language-select');
-    const savedLanguage = localStorage.getItem('preferredLanguage') || 'es';
-    
-    languageSelect.value = savedLanguage;
-    changeLanguage(savedLanguage);
-    
-    // Event listener para cambio de idioma
-    languageSelect.addEventListener('change', (e) => {
-        changeLanguage(e.target.value);
-    });
+function initLang() {
+    const saved = localStorage.getItem('lang') || 'es';
+    const langSelect = document.getElementById('langSelect');
+    langSelect.value = saved;
+    changeLang(saved);
+}
+
+// ===== INIT =====
+
+function init() {
+    initTheme();
+    initLang();
 }
 
 // ===== DATOS REALES DE LOS ESPACIOS DE COLOR =====
 
-// Primarios de sRGB en coordenadas CIE xy
 const sRGB_PRIMARIES = {
     red: { x: 0.6400, y: 0.3300 },
     green: { x: 0.3000, y: 0.6000 },
     blue: { x: 0.1500, y: 0.0600 },
-    white: { x: 0.3127, y: 0.3290 } // D65
+    white: { x: 0.3127, y: 0.3290 }
 };
 
-// Primarios de AdobeRGB en coordenadas CIE xy
 const ADOBE_RGB_PRIMARIES = {
     red: { x: 0.6400, y: 0.3300 },
     green: { x: 0.2100, y: 0.7100 },
     blue: { x: 0.1500, y: 0.0600 },
-    white: { x: 0.3127, y: 0.3290 } // D65
+    white: { x: 0.3127, y: 0.3290 }
 };
 
-// Matriz de conversión sRGB a XYZ (usando valores estándar)
 const sRGB_TO_XYZ_MATRIX = [
     [0.4124564, 0.3575761, 0.1804375],
     [0.2126729, 0.7151522, 0.0721750],
     [0.0193339, 0.1191920, 0.9503041]
 ];
 
-// Matriz de conversión AdobeRGB a XYZ
 const ADOBE_RGB_TO_XYZ_MATRIX = [
     [0.5767309, 0.1855540, 0.1881852],
     [0.2973769, 0.6273491, 0.0752741],
     [0.0270343, 0.0706872, 0.9911085]
 ];
 
-// Datos del espectro visible para el diagrama CIE 1931 (longitudes de onda y coordenadas xy)
-// Fuente: CIE 1931 Standard Observer - Datos estándar internacionales
 const SPECTRUM_LOCUS = [
     { λ: 380, x: 0.1741, y: 0.0050 },
     { λ: 385, x: 0.1740, y: 0.0050 },
@@ -242,11 +263,9 @@ const SPECTRUM_LOCUS = [
     { λ: 730, x: 0.7347, y: 0.2653 }
 ];
 
-// Estado de la aplicación
 let currentHSL = { h: 0, s: 100, l: 50 };
 let currentRGB = { r: 255, g: 0, b: 0 };
 
-// Referencias a elementos del DOM
 const hueSlider = document.getElementById('hue');
 const saturationSlider = document.getElementById('saturation');
 const lightnessSlider = document.getElementById('lightness');
@@ -268,18 +287,16 @@ const adobergbXY = document.getElementById('adobergb-xy');
 const cieDiagram = document.getElementById('cie-diagram');
 const rgbSpectrumCanvas = document.getElementById('rgb-spectrum');
 
-// Funciones de conversión de color
-
 function hslToRgb(h, s, l) {
     s /= 100;
     l /= 100;
-    
+
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const x = c * (1 - Math.abs((h / 60) % 2 - 1));
     const m = l - c / 2;
-    
+
     let r, g, b;
-    
+
     if (h >= 0 && h < 60) {
         [r, g, b] = [c, x, 0];
     } else if (h >= 60 && h < 120) {
@@ -293,7 +310,7 @@ function hslToRgb(h, s, l) {
     } else {
         [r, g, b] = [c, 0, x];
     }
-    
+
     return {
         r: Math.round((r + m) * 255),
         g: Math.round((g + m) * 255),
@@ -301,7 +318,6 @@ function hslToRgb(h, s, l) {
     };
 }
 
-// Aplicar gamma de sRGB
 function srgbGamma(value) {
     const v = value / 255;
     if (v <= 0.04045) {
@@ -311,25 +327,22 @@ function srgbGamma(value) {
     }
 }
 
-// Aplicar gamma de AdobeRGB
 function adobeRgbGamma(value) {
     return Math.pow(value / 255, 2.2);
 }
 
-// Convertir RGB a XYZ usando una matriz específica
 function rgbToXYZ(rgb, matrix, gammaFunction) {
     const rLinear = gammaFunction(rgb.r);
     const gLinear = gammaFunction(rgb.g);
     const bLinear = gammaFunction(rgb.b);
-    
+
     const X = matrix[0][0] * rLinear + matrix[0][1] * gLinear + matrix[0][2] * bLinear;
     const Y = matrix[1][0] * rLinear + matrix[1][1] * gLinear + matrix[1][2] * bLinear;
     const Z = matrix[2][0] * rLinear + matrix[2][1] * gLinear + matrix[2][2] * bLinear;
-    
+
     return { X, Y, Z };
 }
 
-// Convertir XYZ a coordenadas de cromaticidad xy
 function xyzToXy(xyz) {
     const sum = xyz.X + xyz.Y + xyz.Z;
     if (sum === 0) {
@@ -341,116 +354,104 @@ function xyzToXy(xyz) {
     };
 }
 
-// Cargar imagen del diagrama CIE coloreado
 const cieBackgroundImage = new Image();
-cieBackgroundImage.crossOrigin = "anonymous";
-// Usar la imagen de Wikimedia Commons
-cieBackgroundImage.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/CIExy1931.svg/600px-CIExy1931.svg.png";
-
 let imageLoaded = false;
+
 cieBackgroundImage.onload = function() {
     imageLoaded = true;
     drawCIEDiagram();
 };
 
 cieBackgroundImage.onerror = function() {
-    console.log("No se pudo cargar la imagen del diagrama CIE, dibujando sin fondo coloreado");
     imageLoaded = false;
     drawCIEDiagram();
 };
 
-// Dibujar gradiente de tono
+cieBackgroundImage.src = "CIExy1931.svg";
+
+if (cieBackgroundImage.complete) {
+    imageLoaded = true;
+    drawCIEDiagram();
+}
+
 function drawHueGradient() {
     const ctx = hueCanvas.getContext('2d');
     const width = hueCanvas.width = hueCanvas.offsetWidth;
     const height = hueCanvas.height = hueCanvas.offsetHeight;
-    
+
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    
+
     for (let i = 0; i <= 360; i += 30) {
         const rgb = hslToRgb(i, 100, 50);
         gradient.addColorStop(i / 360, `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
     }
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 }
 
-// Dibujar gradiente de saturación
 function drawSaturationGradient() {
     const ctx = saturationCanvas.getContext('2d');
     const width = saturationCanvas.width = saturationCanvas.offsetWidth;
     const height = saturationCanvas.height = saturationCanvas.offsetHeight;
-    
+
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    
+
     for (let i = 0; i <= 100; i += 10) {
         const rgb = hslToRgb(currentHSL.h, i, currentHSL.l);
         gradient.addColorStop(i / 100, `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
     }
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 }
 
-// Dibujar gradiente de luminosidad
 function drawLightnessGradient() {
     const ctx = lightnessCanvas.getContext('2d');
     const width = lightnessCanvas.width = lightnessCanvas.offsetWidth;
     const height = lightnessCanvas.height = lightnessCanvas.offsetHeight;
-    
+
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    
+
     for (let i = 0; i <= 100; i += 10) {
         const rgb = hslToRgb(currentHSL.h, currentHSL.s, i);
         gradient.addColorStop(i / 100, `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
     }
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 }
 
-// Dibujar espectro de distribución RGB
 function drawRGBSpectrum() {
     const ctx = rgbSpectrumCanvas.getContext('2d');
     const width = rgbSpectrumCanvas.width = rgbSpectrumCanvas.offsetWidth;
     const height = rgbSpectrumCanvas.height = rgbSpectrumCanvas.offsetHeight;
-    
+
     rgbSpectrumCanvas.width = width;
     rgbSpectrumCanvas.height = height;
-    
-    // Fondo blanco
+
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, width, height);
-    
+
     const padding = 20;
     const plotWidth = width - 2 * padding;
     const plotHeight = height - 2 * padding;
-    
-    // Función gaussiana para simular la distribución espectral de cada canal
+
     function gaussian(x, center, width, amplitude) {
         return amplitude * Math.exp(-Math.pow(x - center, 2) / (2 * width * width));
     }
-    
-    // Calcular valores para cada canal RGB
+
     const points = [];
     const numPoints = plotWidth;
-    
-    // Normalizar las amplitudes basándose en el máximo valor RGB (255)
     const maxRGB = 255;
-    
+
     for (let i = 0; i < numPoints; i++) {
         const x = i / numPoints;
-        
-        // Simular distribución espectral basada en longitudes de onda típicas
-        // Orden: Mayor a menor longitud de onda (izquierda → derecha)
-        // Rojo: ~650nm (mayor λ, izquierda)
-        // Verde: ~530nm (media λ, centro)
-        // Azul: ~460nm (menor λ, derecha)
+
         const redContribution = gaussian(x, 0.15, 0.15, currentRGB.r / maxRGB);
         const greenContribution = gaussian(x, 0.5, 0.12, currentRGB.g / maxRGB);
         const blueContribution = gaussian(x, 0.85, 0.12, currentRGB.b / maxRGB);
-        
+
         points.push({
             x: x,
             r: redContribution,
@@ -459,41 +460,36 @@ function drawRGBSpectrum() {
             total: redContribution + greenContribution + blueContribution
         });
     }
-    
-    // Usar escala absoluta: el máximo siempre es 1 (que representa RGB=255)
-    // Esto hace que las alturas relativas sean correctas siempre
+
     const maxValue = 1.0;
-    
-    // Dibujar las curvas de cada componente
+
     const drawChannel = (channel, color, withFill = true) => {
         ctx.beginPath();
         ctx.moveTo(padding, height - padding);
-        
+
         for (let i = 0; i < points.length; i++) {
             const x = padding + i;
             const y = height - padding - (points[i][channel] / maxValue) * plotHeight;
             ctx.lineTo(x, y);
         }
-        
+
         ctx.lineTo(padding + plotWidth, height - padding);
         ctx.closePath();
-        
+
         if (withFill) {
             ctx.fillStyle = color;
             ctx.fill();
         }
-        
+
         ctx.strokeStyle = color.replace('0.4', '0.8').replace('0.2', '1');
         ctx.lineWidth = 2;
         ctx.stroke();
     };
-    
-    // Dibujar las tres componentes (primero las más tenues)
+
     drawChannel('b', 'rgba(0, 0, 255, 0.4)');
     drawChannel('g', 'rgba(0, 200, 0, 0.4)');
     drawChannel('r', 'rgba(255, 0, 0, 0.4)');
-    
-    // Dibujar la curva envolvente (suma de las tres componentes) - solo el contorno
+
     ctx.beginPath();
     for (let i = 0; i < points.length; i++) {
         const x = padding + i;
@@ -507,8 +503,7 @@ function drawRGBSpectrum() {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.lineWidth = 3;
     ctx.stroke();
-    
-    // Dibujar ejes
+
     ctx.strokeStyle = '#666';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -516,8 +511,7 @@ function drawRGBSpectrum() {
     ctx.lineTo(padding, height - padding);
     ctx.lineTo(width - padding, height - padding);
     ctx.stroke();
-    
-    // Etiquetas de ejes (orden invertido: mayor a menor longitud de onda)
+
     ctx.font = '11px Arial';
     ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
@@ -525,74 +519,58 @@ function drawRGBSpectrum() {
     ctx.fillText('380nm', width - padding - 10, height - 5);
     ctx.textAlign = 'right';
     ctx.fillText('Intensidad', padding - 5, padding + 10);
-    
-    // Añadir leyenda con valores RGB reales
+
     const legendY = padding + 15;
     const legendX = width - padding - 10;
-    
+
     ctx.font = 'bold 12px Arial';
     ctx.textAlign = 'right';
-    
-    // Rojo
+
     ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
     ctx.fillText(`R: ${currentRGB.r}`, legendX, legendY);
-    
-    // Verde
+
     ctx.fillStyle = 'rgba(0, 150, 0, 0.9)';
     ctx.fillText(`G: ${currentRGB.g}`, legendX, legendY + 15);
-    
-    // Azul
+
     ctx.fillStyle = 'rgba(0, 0, 255, 0.9)';
     ctx.fillText(`B: ${currentRGB.b}`, legendX, legendY + 30);
 }
 
-// Dibujar el diagrama CIE xy
 function drawCIEDiagram() {
     const canvas = cieDiagram;
-    const size = 600;
-    canvas.width = size;
-    canvas.height = size;
+    const svgWidth = 476;
+    const svgHeight = 540;
+    canvas.width = svgWidth;
+    canvas.height = svgHeight;
     const ctx = canvas.getContext('2d');
-    
-    // La imagen del CIE tiene sus propios márgenes y escala
-    // Mapeo calibrado para la imagen de Wikimedia Commons CIExy1931.svg
-    // La imagen renderizada tiene márgenes específicos que debemos respetar
-    
-    // Márgenes de la imagen (calibrados para que coincidan con el gráfico)
-    const imageMarginLeft = 85;   // Margen izquierdo (incluye eje Y y etiquetas)
-    const imageMarginBottom = 80; // Margen inferior (incluye eje X y etiquetas)
-    const imageMarginTop = 20;    // Margen superior
-    const imageMarginRight = 50;  // Margen derecho
-    
-    const plotWidth = size - imageMarginLeft - imageMarginRight;
-    const plotHeight = size - imageMarginTop - imageMarginBottom;
-    
-    // Límites del diagrama CIE en la imagen (la imagen va de 0 a 0.8 en x y de 0 a 0.9 en y)
+
+    const imageMarginLeft = 47.8;
+    const imageMarginBottom = 47.2;
+    const imageMarginTop = 32;
+
+    const plotWidth = 409.6;
+    const plotHeight = 460.8;
+
     const xMin = 0;
     const xMax = 0.8;
     const yMin = 0;
     const yMax = 0.9;
-    
-    // Función para convertir coordenadas xy a píxeles del canvas
+
     function xyToCanvas(x, y) {
         const xNorm = (x - xMin) / (xMax - xMin);
         const yNorm = (y - yMin) / (yMax - yMin);
         return {
             x: imageMarginLeft + xNorm * plotWidth,
-            y: size - imageMarginBottom - yNorm * plotHeight
+            y: svgHeight - imageMarginBottom - yNorm * plotHeight
         };
     }
-    
-    // Fondo blanco
+
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, size, size);
-    
-    // Dibujar la imagen del diagrama CIE como fondo si está cargada
+    ctx.fillRect(0, 0, svgWidth, svgHeight);
+
     if (imageLoaded && cieBackgroundImage.complete) {
-        // La imagen cubre todo el canvas (ya tiene sus propios márgenes y ejes)
-        ctx.drawImage(cieBackgroundImage, 0, 0, size, size);
+        ctx.drawImage(cieBackgroundImage, 0, 0, svgWidth, svgHeight);
     } else {
-        // Si no hay imagen, dibujar el contorno del espectro
         ctx.beginPath();
         SPECTRUM_LOCUS.forEach((point, i) => {
             const pos = xyToCanvas(point.x, point.y);
@@ -602,63 +580,53 @@ function drawCIEDiagram() {
                 ctx.lineTo(pos.x, pos.y);
             }
         });
-        
-        // Cerrar con la línea púrpura
+
         const firstPoint = xyToCanvas(SPECTRUM_LOCUS[0].x, SPECTRUM_LOCUS[0].y);
         ctx.lineTo(firstPoint.x, firstPoint.y);
         ctx.closePath();
-        
-        // Contorno del espectro
+
         ctx.fillStyle = 'rgba(240, 240, 240, 0.5)';
         ctx.fill();
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.stroke();
     }
-    
-    // Dibujar gamut de sRGB con contorno visible
+
     ctx.beginPath();
     const srgbRed = xyToCanvas(sRGB_PRIMARIES.red.x, sRGB_PRIMARIES.red.y);
     const srgbGreen = xyToCanvas(sRGB_PRIMARIES.green.x, sRGB_PRIMARIES.green.y);
     const srgbBlue = xyToCanvas(sRGB_PRIMARIES.blue.x, sRGB_PRIMARIES.blue.y);
-    
+
     ctx.moveTo(srgbRed.x, srgbRed.y);
     ctx.lineTo(srgbGreen.x, srgbGreen.y);
     ctx.lineTo(srgbBlue.x, srgbBlue.y);
     ctx.closePath();
-    
-    // Sin relleno para que se vea el fondo coloreado
+
     ctx.strokeStyle = '#0066FF';
     ctx.lineWidth = 4;
     ctx.setLineDash([]);
     ctx.stroke();
-    
-    // Dibujar gamut de AdobeRGB con contorno visible
+
     ctx.beginPath();
     const adobeRed = xyToCanvas(ADOBE_RGB_PRIMARIES.red.x, ADOBE_RGB_PRIMARIES.red.y);
     const adobeGreen = xyToCanvas(ADOBE_RGB_PRIMARIES.green.x, ADOBE_RGB_PRIMARIES.green.y);
     const adobeBlue = xyToCanvas(ADOBE_RGB_PRIMARIES.blue.x, ADOBE_RGB_PRIMARIES.blue.y);
-    
+
     ctx.moveTo(adobeRed.x, adobeRed.y);
     ctx.lineTo(adobeGreen.x, adobeGreen.y);
     ctx.lineTo(adobeBlue.x, adobeBlue.y);
     ctx.closePath();
-    
-    // Sin relleno para que se vea el fondo coloreado
+
     ctx.strokeStyle = '#00AA00';
     ctx.lineWidth = 4;
     ctx.stroke();
-    
-    // No dibujamos ejes porque la imagen de fondo ya los tiene
-    
-    // Dibujar el color actual en ambos espacios
+
     const srgbXYZ = rgbToXYZ(currentRGB, sRGB_TO_XYZ_MATRIX, srgbGamma);
     const srgbXy = xyzToXy(srgbXYZ);
-    
+
     const adobeXYZ = rgbToXYZ(currentRGB, ADOBE_RGB_TO_XYZ_MATRIX, adobeRgbGamma);
     const adobeXy = xyzToXy(adobeXYZ);
-    
-    // Punto sRGB (mismo color azul que el gamut sRGB)
+
     const srgbPos = xyToCanvas(srgbXy.x, srgbXy.y);
     ctx.beginPath();
     ctx.arc(srgbPos.x, srgbPos.y, 8, 0, 2 * Math.PI);
@@ -667,14 +635,12 @@ function drawCIEDiagram() {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.stroke();
-    
-    // Etiqueta del punto sRGB
+
     ctx.font = '12px Arial';
     ctx.fillStyle = '#000';
     ctx.textAlign = 'left';
     ctx.fillText(`(${srgbXy.x.toFixed(3)}, ${srgbXy.y.toFixed(3)})`, srgbPos.x + 12, srgbPos.y - 5);
-    
-    // Punto AdobeRGB (mismo color verde que el gamut AdobeRGB)
+
     const adobePos = xyToCanvas(adobeXy.x, adobeXy.y);
     ctx.beginPath();
     ctx.arc(adobePos.x, adobePos.y, 8, 0, 2 * Math.PI);
@@ -683,49 +649,36 @@ function drawCIEDiagram() {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.stroke();
-    
-    // Etiqueta del punto AdobeRGB
+
     ctx.font = '12px Arial';
     ctx.fillStyle = '#000';
     ctx.textAlign = 'left';
     ctx.fillText(`(${adobeXy.x.toFixed(3)}, ${adobeXy.y.toFixed(3)})`, adobePos.x + 12, adobePos.y + 15);
 }
 
-// Actualizar todo
 function updateAll() {
-    // Convertir HSL a RGB
     currentRGB = hslToRgb(currentHSL.h, currentHSL.s, currentHSL.l);
-    
-    // Actualizar visualización del color
+
     colorBox.style.backgroundColor = `rgb(${currentRGB.r}, ${currentRGB.g}, ${currentRGB.b})`;
-    
-    // Actualizar valores RGB
+
     rgbValue.textContent = `RGB: (${currentRGB.r}, ${currentRGB.g}, ${currentRGB.b})`;
     hslDisplay.textContent = `HSL: (${currentHSL.h}°, ${currentHSL.s}%, ${currentHSL.l}%)`;
-    
-    // Calcular coordenadas CIE xy para ambos espacios
+
     const srgbXYZ = rgbToXYZ(currentRGB, sRGB_TO_XYZ_MATRIX, srgbGamma);
     const srgbXy = xyzToXy(srgbXYZ);
-    
+
     const adobeXYZ = rgbToXYZ(currentRGB, ADOBE_RGB_TO_XYZ_MATRIX, adobeRgbGamma);
     const adobeXy = xyzToXy(adobeXYZ);
-    
-    // Actualizar coordenadas
+
     srgbXY.textContent = `x: ${srgbXy.x.toFixed(4)}, y: ${srgbXy.y.toFixed(4)}`;
     adobergbXY.textContent = `x: ${adobeXy.x.toFixed(4)}, y: ${adobeXy.y.toFixed(4)}`;
-    
-    // Actualizar gradientes
+
     drawSaturationGradient();
     drawLightnessGradient();
-    
-    // Dibujar espectro RGB
     drawRGBSpectrum();
-    
-    // Redibujar el diagrama CIE
     drawCIEDiagram();
 }
 
-// Event listeners
 hueSlider.addEventListener('input', (e) => {
     currentHSL.h = parseInt(e.target.value);
     hueValue.textContent = `${currentHSL.h}°`;
@@ -744,32 +697,25 @@ lightnessSlider.addEventListener('input', (e) => {
     updateAll();
 });
 
-// Inicialización
 window.addEventListener('load', () => {
-    // Inicializar sistema de idiomas
-    initializeLanguage();
-    
-    // Sincronizar los valores del JavaScript con los valores de los sliders
-    // (por si el navegador ha guardado valores anteriores)
+    init();
+
     currentHSL.h = parseInt(hueSlider.value) || 0;
     currentHSL.s = parseInt(saturationSlider.value) || 100;
     currentHSL.l = parseInt(lightnessSlider.value) || 50;
-    
-    // Asegurarse de que los sliders tienen los valores correctos
+
     hueSlider.value = currentHSL.h;
     saturationSlider.value = currentHSL.s;
     lightnessSlider.value = currentHSL.l;
-    
-    // Actualizar los displays de valores
+
     hueValue.textContent = `${currentHSL.h}°`;
     saturationValue.textContent = `${currentHSL.s}%`;
     lightnessValue.textContent = `${currentHSL.l}%`;
-    
+
     drawHueGradient();
     updateAll();
 });
 
-// Redibujar en caso de redimensionamiento
 window.addEventListener('resize', () => {
     drawHueGradient();
     drawSaturationGradient();
@@ -777,4 +723,3 @@ window.addEventListener('resize', () => {
     drawRGBSpectrum();
     drawCIEDiagram();
 });
-

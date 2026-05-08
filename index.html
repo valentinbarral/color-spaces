@@ -6,25 +6,26 @@
     <title>Espacios de Color: sRGB vs AdobeRGB</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <div class="language-selector">
-                <select id="language-select">
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="gl">Galego</option>
-                </select>
-            </div>
-            <h1 data-i18n="header.title">Comparación de Espacios de Color</h1>
-            <p data-i18n="header.subtitle">sRGB vs AdobeRGB - Diagrama CIE xy</p>
-        </header>
+<body class="dark">
+    <header>
+        <button class="hamburger" onclick="toggleMenu()" aria-label="Menú">☰</button>
+        <h1 data-i18n="header.title">Comparación de Espacios de Color</h1>
+        <nav class="header-controls" id="headerControls">
+            <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+            <select class="lang-sel" onchange="changeLang(this.value)" id="langSelect">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+                <option value="gl">Galego</option>
+            </select>
+        </nav>
+    </header>
 
+    <div class="container">
         <div class="main-content">
             <!-- Panel Izquierdo -->
             <div class="left-panel">
                 <h2 data-i18n="left.title">Control de Color (HSL)</h2>
-                
+
                 <!-- Slider de Tono -->
                 <div class="slider-group">
                     <label for="hue" data-i18n="left.hue">Tono (H)</label>
@@ -63,7 +64,7 @@
                         <p id="rgb-value">RGB: (255, 0, 0)</p>
                         <p id="hsl-display">HSL: (0°, 100%, 50%)</p>
                     </div>
-                    
+
                     <!-- Gráfica de distribución espectral RGB -->
                     <div class="spectrum-graph-container">
                         <h4 data-i18n="left.spectrumTitle">Distribución de Intensidad RGB</h4>
@@ -122,7 +123,7 @@
                 <span data-i18n="footer.created">Created by</span> <strong>Valentín Barral</strong>
             </p>
             <p class="footer-license">
-                <span data-i18n="footer.licensed">Licensed under</span> 
+                <span data-i18n="footer.licensed">Licensed under</span>
                 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">
                     <img src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0" style="vertical-align: middle; margin: 0 4px;">
                     Creative Commons Attribution-ShareAlike 4.0 International
@@ -137,4 +138,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
